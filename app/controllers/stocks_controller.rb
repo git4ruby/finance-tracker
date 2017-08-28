@@ -8,7 +8,7 @@ class StocksController < ApplicationController
 		if @stock
 			render json: @stock
 		else
-			render status: :not_found, nothing: true
+			render json: { nothing: true, status: :not_found }
 		end
 	end
 
