@@ -8,27 +8,22 @@ class Stock < ApplicationRecord
 	end
 
 	def self.new_from_lookup(ticker_symbol)
-		looked_up_stock = StockQuote::Stock.quote(ticker_symbol)
-		return nil unless looked_up_stock.name
+		looked_up_stock = Stock.api_lookup(ticker_symbol)
+		return nil unless looked_up_stock.present?
 		new_stock = new(ticker: looked_up_stock.symbol, name: looked_up_stock.name)
-		new_stock.last_price = StockQuote::Stock.quote(new_stock.ticker).open
+		new_stock.last_price = new_stock.price
 		new_stock
 	end
 
 	def price
-		begin
-			closing_price = StockQuote::Stock.quote(ticker).close
-		rescue
-			closing_price = nil
-		end
-		return "#{closing_price}(closing)" if closing_price
-		begin
-			opening_price = StockQuote::Stock.quote(ticker).open
-		rescue
-			opening_price = nil
-		end
-		return "#{opening_price}(opening)" if opening_price
-		'Unavailable'
+		stock_data = Stock.api_lookup(ticker)
+    return 'Unavailable' unless stock_data.present?
+    closing_price = stock_data.close
+    return "#{closing_price} (Closing)" if closing_price
+    opening_price = stock_data.open
+    return "#{opening_price} (Opening)" if opening_price
+    'Unavailable'
+
 	end
 
 	private
@@ -55,10 +50,9 @@ class Stock < ApplicationRecord
       uri = URI(url)
       response = Net::HTTP.get(uri)
       data = JSON.parse(response)
-      
       # Get the actual historical data
       historical_data = data['Time Series (1min)']
-      
+      #binding.pry
       # Get the most recent data
       recent_data = historical_data.first
       # The actual data hash is in the second item.

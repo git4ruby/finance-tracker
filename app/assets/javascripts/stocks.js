@@ -10,8 +10,9 @@ init_stock_lookup = function() {
 	});
 
 	$('#stock-lookup-form').on('ajax:success', function(event, data, status){
-		$('#stock-lookup').replaceWith(data);
-		init_stock_lookup();
+		//$('#stock-lookup').replaceWith(data);
+		var str = "<strong>Symbol:</strong> "+ data.ticker + " <strong>Name:</strong>" + data.name + "<strong>Price:</strong>" + data.last_price;
+		$("#stock-lookup-results").empty().append(str);
 	});
 
 	$('#stock-lookup-form').on('ajax:error', function(event, xhr, status, error) {
